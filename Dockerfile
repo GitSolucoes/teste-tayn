@@ -11,7 +11,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expõe a porta do Flask
-EXPOSE 1475
+EXPOSE 1400
 
 # Comando para rodar o app
 CMD ["python", "main.py"]
