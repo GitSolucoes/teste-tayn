@@ -1,14 +1,17 @@
-# Usando uma imagem base com Python
-FROM python:3.9-slim
+# Usa uma imagem do Python
+FROM python:3.10
 
-# Definindo o diretório de trabalho
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copiando os arquivos do projeto para o contêiner
+# Copia os arquivos do projeto
 COPY . .
 
-# Instalando as dependências do projeto
+# Instala as dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Definindo o comando para rodar a aplicação com Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "main:app"]
+# Expõe a porta do Flask
+EXPOSE 1400
+
+# Comando para rodar o app
+CMD ["python", "main.py"]
