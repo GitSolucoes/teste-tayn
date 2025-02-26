@@ -16,10 +16,7 @@ CODIGO_BITRIX_STR = os.getenv('CODIGO_BITRIX_STR')
 PROFILE = os.getenv('PROFILE')
 BASE_URL_API_BITRIX = os.getenv('BASE_URL_API_BITRIX')
 
-
 BITRIX_WEBHOOK_URL = f"{BASE_URL_API_BITRIX}/{PROFILE}/{CODIGO_BITRIX}/bizproc.workflow.start"
-
-
 
 def make_request_with_retry(url, data, max_retries=3, retry_delay=5):
     """Faz a requisição e tenta novamente em caso de erro (404, 400, 500, etc.)."""
@@ -27,10 +24,8 @@ def make_request_with_retry(url, data, max_retries=3, retry_delay=5):
         try:
             print(f"🕒 Tentativa {attempt + 1} de {max_retries} para {url}")
             response = requests.post(url, json=data)
-            
             # Verifica se a resposta tem status 200
             response.raise_for_status()
-            
             print("✅ Requisição bem-sucedida!")
             return response  # Retorna a resposta se for bem-sucedida
         except requests.exceptions.RequestException as e:
@@ -41,10 +36,6 @@ def make_request_with_retry(url, data, max_retries=3, retry_delay=5):
             else:
                 print("❌ Máximo de tentativas atingido. Falha na requisição.")
     return None  # Retorna None se todas as tentativas falharem
-
-
-
-
 
 def update_card_bitrix(card_id, name_of_field, value):
     url = f"{BASE_URL_API_BITRIX}/{PROFILE}/{CODIGO_BITRIX}/crm.deal.update"
@@ -68,32 +59,28 @@ def update_card_bitrix(card_id, name_of_field, value):
             print(response.text)
         return None
 
-
-
-
-
 def convert_for_gmt_minus_3(date_from_bitrix):
     hour_obj = datetime.fromisoformat(date_from_bitrix)
     hour_sub = hour_obj - timedelta(hours=6)
     new_hour_formated = hour_sub.isoformat()
     return new_hour_formated
-    
+
 WORKFLOW_IDS = {
-    "workflow1": "1196", #primeiro boleto(1.1)
-    "workflow2": "1200", #primeiro boleto(1.2)
-    "workflow3": "1204", #segundo boleto(1.1)
-    "workflow4": "1206", #segundo boleto(1.2)
-    "workflow5": "1208", #terceiro boleto(1.1)
-    "workflow6": "1210", #terceiro boleto(1.2)
-    "workflow7": "1212", #quarto boleto(1.1)
-    "workflow8": "1214", #quarto boleto(1.2)
-    "workflow9": "1216", #quinto boleto(1.1)
-    "workflow10": "1218", #quinto boleto(1.2)
-    "workflow11": "1314", #workflow para o site
-    "workflow12": "1294", #workflow para a fila de ativos
-    "workflow13": "1390", #workflow para campo sem fuso horario ser atualizado. 
-    "workflow14": "1426", #workflow que muda o campo de Relatorio data. 
-    "workflow15": "1428", #workflow que muda o campo de Relatorio data/hora. 
+    "workflow1": "1196",
+    "workflow2": "1200",
+    "workflow3": "1204",
+    "workflow4": "1206",
+    "workflow5": "1208",
+    "workflow6": "1210",
+    "workflow7": "1212",
+    "workflow8": "1214",
+    "workflow9": "1216",
+    "workflow10": "1218",
+    "workflow11": "1314",
+    "workflow12": "1294",
+    "workflow13": "1390",
+    "workflow14": "1426",
+    "workflow15": "1428",
     "workflow16": "1474",
     "workflowredeneutra": "1502",
     "workflowouro": "1496",
@@ -129,15 +116,9 @@ WORKFLOW_IDS = {
     "workflow_cep-adress": "1744"
 }
 
-
-
-
-
-
-
 @app.route('/webhook/<workflow_name>', methods=['POST'])
 def start_workflow(workflow_name):
-    print("✅ Webhook acionado!") 
+    print("✅ Webhook acionado!")
     deal_id = request.args.get('deal_id')
 
     if not deal_id:
@@ -156,20 +137,18 @@ def start_workflow(workflow_name):
     
     return jsonify(response.json()), response.status_code
 
-
-
 @app.route('/update_deal', methods=['POST'])
 def update_deal():
-    deal_id = request.args.get("deal_id")  # Obtém o ID do negócio da query string
-    random_value = request.args.get("value")  # Obtém o valor da query string
+    deal_id = request.args.get("deal_id")
+    random_value = request.args.get("value")
     print(f" Mudança Feita {deal_id}")
     logging.info(f" Mudança Feita {deal_id}")
-           
+    
     if not deal_id:
         return jsonify({"error": "deal_id é obrigatório"}), 400
     
     if random_value is None:
-        random_value = random.randint(100000, 999999)  # Gera um número aleatório entre 100000 e 999999
+        random_value = random.randint(100000, 999999)
     
     url = "https://marketingsolucoes.bitrix24.com.br/rest/5332/s3wx07gjcfywp51q/crm.deal.update"
     params = {
@@ -180,7 +159,5 @@ def update_deal():
     response = requests.post(url, params=params)
     return jsonify(response.json())
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host='0.0.0.0', port=1400)
