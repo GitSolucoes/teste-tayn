@@ -1,17 +1,14 @@
-# Usando uma imagem oficial do Python como base
+# Usando uma imagem base com Python
 FROM python:3.9-slim
 
-# Setando o diretório de trabalho
+# Definindo o diretório de trabalho
 WORKDIR /app
 
-# Copiando os arquivos da aplicação para o contêiner
-COPY . /app
+# Copiando os arquivos do projeto para o contêiner
+COPY . .
 
-# Instalando as dependências
+# Instalando as dependências do projeto
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expondo a porta 1400
-EXPOSE 1400
-
-# Comando para iniciar o servidor com Gunicorn
+# Definindo o comando para rodar a aplicação com Gunicorn
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "main:app"]
