@@ -1,17 +1,17 @@
-# Usa uma imagem do Python
-FROM python:3.10
+# Usando uma imagem oficial do Python como base
+FROM python:3.9-slim
 
-# Define o diretório de trabalho
+# Setando o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos do projeto
-COPY . .
+# Copiando os arquivos da aplicação para o contêiner
+COPY . /app
 
-# Instala as dependências
+# Instalando as dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expõe a porta do Flask
+# Expondo a porta 1400
 EXPOSE 1400
 
-# Comando para rodar o app
-CMD ["python", "main.py"]
+# Comando para iniciar o servidor com Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "app:app"]
