@@ -15,5 +15,5 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Define a porta que o contêiner vai expor
 EXPOSE 1400
 
-# Comando para rodar o Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:app"]
+# Comando para rodar o Gunicorn, ajustando a porta para 1400
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "app:app"]
