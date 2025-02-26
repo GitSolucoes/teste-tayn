@@ -180,8 +180,7 @@ def update_deal():
     response = requests.post(url, params=params)
     return jsonify(response.json())
 
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=1400, debug=True)
-
-
-
+    app.run(host='0.0.0.0', port=1400)
