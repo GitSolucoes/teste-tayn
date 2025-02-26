@@ -181,6 +181,7 @@ def update_deal():
     return jsonify(response.json())
 
 if __name__ == '__main__':
-    gunicorn -w 4 -b 0.0.0.0:1400 app:app
+    app.run(host='0.0.0.0', port=1400, debug=True)
+
 
 
