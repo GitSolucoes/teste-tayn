@@ -1,19 +1,17 @@
-# Usa uma imagem base com Python 3 (exemplo: Debian)
-FROM python:3.10-slim
+# Usa uma imagem do Python
+FROM python:3.10
 
-# Define o diretório de trabalho dentro do contêiner
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos do projeto para dentro do contêiner
+# Copia os arquivos do projeto
 COPY . .
 
-# Instala as dependências do projeto, incluindo o Gunicorn
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn
+# Instala as dependências
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Define a porta que o contêiner vai expor
+# Expõe a porta do Flask
 EXPOSE 1400
 
-# Comando para rodar o Gunicorn, ajustando a porta para 1400
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "app:app"]
+# Comando para rodar o app
+CMD ["python", "main.py"]
