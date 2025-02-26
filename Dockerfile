@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 1400
 
 # Comando para iniciar o servidor com Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "main:app"]
