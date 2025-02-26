@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expõe a porta do Flask
 EXPOSE 1400
 
-# Comando para rodar o app
-CMD ["python", "main.py"]
+# Comando para rodar o app com Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:1400", "main:app"]
