@@ -183,5 +183,6 @@ def update_deal():
 
 
 if __name__ == '__main__':
-    gunicorn -w 4 -b 0.0.0.0:1400 main:app
+    gunicorn -w 4 -b 0.0.0.0:1400 app:app
+
 
