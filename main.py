@@ -180,8 +180,6 @@ def update_deal():
     response = requests.post(url, params=params)
     return jsonify(response.json())
 
-
-
 if __name__ == '__main__':
     gunicorn -w 4 -b 0.0.0.0:1400 app:app
 
