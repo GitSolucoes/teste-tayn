@@ -9,15 +9,9 @@ import logging
 
 app = Flask(__name__)
 
-# Load environment variables
-load_dotenv()
-CODIGO_BITRIX = os.getenv('CODIGO_BITRIX')
-CODIGO_BITRIX_STR = os.getenv('CODIGO_BITRIX_STR')
-PROFILE = os.getenv('PROFILE')
-BASE_URL_API_BITRIX = os.getenv('BASE_URL_API_BITRIX')
 
 
-BITRIX_WEBHOOK_URL = f"{BASE_URL_API_BITRIX}/{PROFILE}/{CODIGO_BITRIX}/bizproc.workflow.start"
+BITRIX_WEBHOOK_URL = f"https://marketingsolucoes.bitrix24.com.br/rest/35002/g1e2xmxgbetmntcj/bizproc.workflow.start"
 
 
 
@@ -92,7 +86,7 @@ def update_deal():
     if random_value is None:
         random_value = random.randint(100000, 999999)  # Gera um número aleatório entre 100000 e 999999
     
-    url = "https://marketingsolucoes.bitrix24.com.br/rest/5332/s3wx07gjcfywp51q/crm.deal.update"
+    url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/g1e2xmxgbetmntcj/crm.deal.update"
     params = {
         "ID": deal_id,
         "Fields[UF_CRM_1700661314351]": random_value
