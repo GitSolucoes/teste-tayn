@@ -1,4 +1,4 @@
-Flask==2.0.2
-Werkzeug==2.0.2
-requests==2.26.0
+requests>=2.31.0
 python-dotenv>=1.0.1
+Flask>=3.0.3
+Flask-Cors >=1.10.3
