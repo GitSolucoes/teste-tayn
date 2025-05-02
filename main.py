@@ -5,7 +5,7 @@ import logging
 app = Flask(__name__)
 
 BITRIX_WEBHOOK = "https://marketingsolucoes.bitrix24.com.br/rest/5332/8zyo7yj1ry4k59b5"
-CHAT_TRANSFER_URL = "https://seu-dominio.com/change-the-chat-responsible"  # Troque pela variável real
+CHAT_TRANSFER_URL = "https://grupo--solucoes-chat-transfer-bitrix24.rvc6im.easypanel.host"  
 FIELD_RESP_ORIGINAL = "UF_CRM_1746209622228"
 
 logging.basicConfig(level=logging.INFO)
