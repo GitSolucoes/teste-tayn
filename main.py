@@ -178,18 +178,59 @@ def deal_update_event():
     else:
         data = request.form.to_dict(flat=False)
 
+    print("Payload recebido:", data)  # Debug do payload
+
     if not data or "event" not in data or "data" not in data or "FIELDS" not in data["data"]:
         return jsonify({"error": "Invalid payload received", "received": data}), 400
 
+    # Aqui você pode extrair o deal_id e acionar a lógica
     deal_id = data["data"]["FIELDS"].get("ID")
     if not deal_id:
-        return jsonify({"error": "Deal ID not found in payload"}), 400
+        return jsonify({"error": "No deal ID found in payload"}), 400
 
-    # Encaminhar para o endpoint de verificação e atualização
-    external_url = "https://grupo--solucoes-teste-tayn.rvc6im.easypanel.host/check-and-update-responsible/"
-    response = requests.post(external_url, json={"deal_id": deal_id})
+    # Acionar a lógica de verificação e possível transferência de responsável
+    return check_and_update_responsible_internal(deal_id)
 
-    return jsonify({"status": "event received", "check_result": response.json()}), response.status_code
+# Função interna que reutiliza a lógica de verificação
+def check_and_update_responsible_internal(deal_id):
+    base_url = f"https://marketingsolucoes.bitrix24.com.br/rest/35002/{CODIGO_BITRIX}"
+    deal_url = f"{base_url}/crm.deal.get?ID={deal_id}"
+    res_deal = requests.get(deal_url)
+
+    if res_deal.status_code != 200:
+        return jsonify({"error": "Failed to fetch deal", "details": res_deal.text}), 500
+
+    deal_data = res_deal.json().get("result", {})
+    current_responsible = str(deal_data.get("ASSIGNED_BY_ID"))
+    custom_field_value = str(deal_data.get("UF_CRM_1746209622228") or "")
+
+    if not custom_field_value:
+        update_url = f"{base_url}/crm.deal.update"
+        update_payload = {
+            "ID": deal_id,
+            "fields": {"UF_CRM_1746209622228": current_responsible}
+        }
+        res_update = requests.post(update_url, json=update_payload)
+        if res_update.status_code == 200:
+            return jsonify({"status": "custom field updated", "responsible": current_responsible}), 200
+        else:
+            return jsonify({"error": "Failed to update custom field", "details": res_update.text}), 500
+
+    elif custom_field_value != current_responsible:
+        transfer_url = f"{base_url}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=DEAL&CRM_ENTITY={deal_id}"
+        res_chat = requests.post(transfer_url)
+        if res_chat.status_code == 200:
+            chat_id = res_chat.json().get("result")
+            transfer_action_url = f"{base_url}/imopenlines.operator.transfer?CHAT_ID={chat_id}&TRANSFER_ID={current_responsible}"
+            res_transfer = requests.post(transfer_action_url)
+            if res_transfer.status_code == 200:
+                return jsonify({"status": "chat transferred", "old": custom_field_value, "new": current_responsible}), 200
+            else:
+                return jsonify({"error": "Failed to transfer chat", "details": res_transfer.text}), 500
+        else:
+            return jsonify({"error": "Failed to get chat ID", "details": res_chat.text}), 500
+
+    return jsonify({"status": "no action needed", "responsible": current_responsible}), 200
 
 @app.route("/")
 def index():
@@ -197,3 +238,4 @@ def index():
 
 if __name__ == "__main__":
     app.run(port=1400, host="0.0.0.0")
+
