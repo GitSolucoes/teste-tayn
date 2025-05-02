@@ -43,5 +43,5 @@ def handle_webhook():
         logging.info("Não mudou a responsabilidade")
         return jsonify({'status': 'sem_mudança', 'mensagem': 'Não mudou a responsabilidade'})
 
-if __name__ == '__main__':
-    app.run(port=1400, debug=True)
+if __name__ == "__main__":
+    app.run(port=1400, host="0.0.0.0")
