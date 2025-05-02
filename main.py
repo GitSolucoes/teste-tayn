@@ -171,6 +171,24 @@ def check_and_update_responsible():
 
     return jsonify({"status": "no action needed", "responsible": current_responsible}), 200
 
+@app.route("/deal-update-event/", methods=["POST"])
+def deal_update_event():
+    data = request.get_json()
+
+    if not data or "event" not in data or "data" not in data or "FIELDS" not in data["data"]:
+        return jsonify({"error": "Invalid payload received"}), 400
+
+    deal_id = data["data"]["FIELDS"].get("ID")
+    if not deal_id:
+        return jsonify({"error": "Deal ID not found in payload"}), 400
+
+    # Encaminhar para o endpoint de verificação e atualização
+    internal_url = f"http://127.0.0.1:1400/check-and-update-responsible/"
+    response = requests.post(internal_url, json={"deal_id": deal_id})
+
+    return jsonify({"status": "event received", "check_result": response.json()}), response.status_code
+
+
 @app.route("/")
 def index():
     return "Hello, this is the application!"
