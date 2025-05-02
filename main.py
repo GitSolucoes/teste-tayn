@@ -11,10 +11,7 @@ FIELD_RESP_ORIGINAL = "UF_CRM_1746209622228"
 logging.basicConfig(level=logging.INFO)
 
 def extrair_numero(string):
-    start_index = string.index("_") + 1
-    numero = string[start_index:]
-    return numero
-
+    return string.split("_")[-1]
 
 # ROTA PARA TRANSFERENCIA DE BATE-PAPO NA BITRIX BATENDO COM RESPONSAVEL INDO PRA FILA
 @app.route("/change-the-chat-channel/", methods=["POST"])
