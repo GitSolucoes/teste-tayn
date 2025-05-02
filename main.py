@@ -5,10 +5,7 @@ import time
 
 app = Flask(__name__)
 
-# CONFIGURAÇÕES
-BITRIX_BOT_ID = "35002"
-BITRIX_SECRET = "8zyo7yj1ry4k59b5"
-BITRIX_WEBHOOK = f"https://marketingsolucoes.bitrix24.com.br/rest/{BITRIX_BOT_ID}/{BITRIX_SECRET}"
+BITRIX_WEBHOOK = "https://marketingsolucoes.bitrix24.com.br/rest/5332/8zyo7yj1ry4k59b5"
 CHAT_TRANSFER_URL = "https://grupo--solucoes-teste-tayn.rvc6im.easypanel.host/change-the-chat-responsible/"
 FIELD_RESP_ORIGINAL = "UF_CRM_1746209622228"
 
@@ -23,23 +20,28 @@ def change_the_chat_channel():
     QUEUE_ID = request.args.get("QUEUE_ID")
 
     if not CONTACT_ID or not QUEUE_ID:
-        return jsonify({"error": "CONTACT_ID and QUEUE_ID must be provided"}), 400
+        return jsonify({"error": "CONTACT_ID and QUEUE_ID must be provided in the URL parameters"}), 400
 
-    url = f"{BITRIX_WEBHOOK}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
+    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    url = f"{base_url}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
+
+    logging.info(f"Buscando ID do chat: {url}")
     response = requests.post(url)
     time.sleep(2)
 
     if response.status_code == 200:
         id_chat = response.json()["result"]
-        url2 = f"{BITRIX_WEBHOOK}/imopenlines.operator.transfer?CHAT_ID={id_chat}&QUEUE_ID={QUEUE_ID}"
+        url2 = f"{base_url}/imopenlines.operator.transfer?CHAT_ID={id_chat}&QUEUE_ID={QUEUE_ID}"
+        logging.info(f"Transferindo chat para fila: {url2}")
         response2 = requests.post(url2)
 
         if response2.status_code == 200:
             return "New responsible approved"
         else:
-            return f"No responsible approved: {response2.text}", 500
+            return f"No responsible approved: {response2.text}"
     else:
-        return f"Failed to get chat ID: {response.text}", 500
+        return f"Failed to get chat ID: {response.text} - {url}"
+
 
 @app.route("/change-the-chat-responsible/", methods=["POST"])
 def change_the_chat_responsability():
@@ -47,43 +49,53 @@ def change_the_chat_responsability():
     TRANSFER_ID = request.args.get("TRANSFER_ID")
 
     if not CONTACT_ID or not TRANSFER_ID:
-        return jsonify({"error": "CONTACT_ID and TRANSFER_ID must be provided"}), 400
+        return jsonify({"error": "CONTACT_ID and TRANSFER_ID must be provided in the URL parameters"}), 400
 
     TRANSFER_ID = extrair_numero(TRANSFER_ID)
 
-    url = f"{BITRIX_WEBHOOK}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
+    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    url = f"{base_url}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
+
+    logging.info(f"Buscando chat para contato {CONTACT_ID}")
     response = requests.post(url)
     time.sleep(2)
 
     if response.status_code == 200:
         id_chat = response.json()["result"]
-        url2 = f"{BITRIX_WEBHOOK}/imopenlines.operator.transfer?CHAT_ID={id_chat}&TRANSFER_ID={TRANSFER_ID}"
+        url2 = f"{base_url}/imopenlines.operator.transfer?CHAT_ID={id_chat}&TRANSFER_ID={TRANSFER_ID}"
+        logging.info(f"Transferindo chat para responsável {TRANSFER_ID}")
         response2 = requests.post(url2)
 
         if response2.status_code == 200:
             return "New responsible approved"
         else:
-            return f"No responsible approved: {response2.text}", 500
+            logging.warning(f"Erro na transferência de responsável: {response2.text}")
+            return f"No responsible approved: {response2.text}"
     else:
-        return f"Failed to get chat ID: {response.text}", 500
+        logging.error(f"Erro ao buscar ID do chat: {response.text}")
+        return f"Failed to get chat ID: {response.text}"
+
 
 @app.route("/finalize-chat/", methods=["POST"])
 def finalize_chat():
     DEAL_ID = request.args.get("DEAL_ID")
 
     if not DEAL_ID:
-        return jsonify({"error": "DEAL_ID must be provided"}), 400
+        return jsonify({"error": "DEAL_ID must be provided in the URL parameters"}), 400
 
-    url_get_chat = f"{BITRIX_WEBHOOK}/imopenlines.crm.chat.get?CRM_ENTITY_TYPE=DEAL&CRM_ENTITY={DEAL_ID}"
+    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    url_get_chat = f"{base_url}/imopenlines.crm.chat.get?CRM_ENTITY_TYPE=DEAL&CRM_ENTITY={DEAL_ID}"
+
     response = requests.get(url_get_chat)
     time.sleep(2)
 
     if response.status_code == 200:
         datajson = response.json()
+        logging.info(f"Response JSON: {datajson}")
 
         if "result" in datajson and isinstance(datajson["result"], list) and len(datajson["result"]) > 0:
             chat_id = datajson["result"][0]["CHAT_ID"]
-            url_finish_chat = f"{BITRIX_WEBHOOK}/imopenlines.operator.another.finish?CHAT_ID={chat_id}"
+            url_finish_chat = f"{base_url}/imopenlines.operator.another.finish?CHAT_ID={chat_id}"
             response2 = requests.post(url_finish_chat)
 
             if response2.status_code == 200:
@@ -95,6 +107,7 @@ def finalize_chat():
     else:
         return jsonify({"error": "Failed to get CHAT_ID", "details": response.text}), 500
 
+
 @app.route("/transfer-chat-between-deals/", methods=["POST", "GET"])
 def transfer_chat_between_deals():
     from_id = request.args.get("from_deal_id", "Não informado")
@@ -103,17 +116,15 @@ def transfer_chat_between_deals():
     if from_id == "Não informado" or to_id == "Não informado":
         return {"status": "error", "message": "ID do deal não informado!"}, 400
 
-    url_get_activity = f"{BITRIX_WEBHOOK}/crm.activity.list?filter[OWNER_ID]={from_id}"
+    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    url_get_activity = f"{base_url}/crm.activity.list?filter[OWNER_ID]={from_id}"
     res = requests.get(url_get_activity)
 
-    if len(res.json().get("result", [])) < 1:
-        return {
-            "status": "error",
-            "message": f"Não há atividades para serem movidas no card {from_id}",
-        }, 404
+    if len(res.json()["result"]) < 1:
+        return {"status": "error", "message": f"Não há atividades para serem movidas no card {from_id}"}, 404
 
     activity_id = res.json()["result"][0]["ID"]
-    url_move = f"{BITRIX_WEBHOOK}/crm.activity.binding.move"
+    url_move = f"{base_url}/crm.activity.binding.move"
 
     payload = {
         "activityId": activity_id,
@@ -131,10 +142,8 @@ def transfer_chat_between_deals():
             "message": f"Atividade movida do Card número {from_id} para o Card número {to_id}",
         }, 200
 
-    return {
-        "status": "error",
-        "message": res2.json().get("error_description", "Erro desconhecido"),
-    }, 500
+    return {"status": "error", "message": res2.json().get("error_description", "Erro desconhecido")}, 500
+
 
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
@@ -145,38 +154,35 @@ def handle_webhook():
 
     response = requests.get(f"{BITRIX_WEBHOOK}/crm.deal.get", params={'id': deal_id})
     result = response.json().get('result', {})
-    
+
     assigned_by = str(result.get('ASSIGNED_BY_ID', ''))
     original_responsible = str(result.get(FIELD_RESP_ORIGINAL, ''))
     contact_id = str(result.get('CONTACT_ID', ''))
 
     if not original_responsible or original_responsible == 'None':
-        requests.post(f"{BITRIX_WEBHOOK}/crm.deal.update", json={
+        update = requests.post(f"{BITRIX_WEBHOOK}/crm.deal.update", json={
             'id': deal_id,
             'fields': {
                 FIELD_RESP_ORIGINAL: assigned_by
             }
-        })
+        }).json()
         logging.info(f"Responsável original registrado: {assigned_by}")
         return jsonify({'status': 'atualizado', 'mensagem': 'Responsável original registrado'})
 
     elif original_responsible != assigned_by:
-        requests.post(f"{BITRIX_WEBHOOK}/crm.deal.update", json={
+        update = requests.post(f"{BITRIX_WEBHOOK}/crm.deal.update", json={
             'id': deal_id,
             'fields': {
                 FIELD_RESP_ORIGINAL: assigned_by
             }
-        })
+        }).json()
         logging.info(f"Responsável mudou: de {original_responsible} para {assigned_by} — Campo atualizado")
 
+        transfer_url = f"{CHAT_TRANSFER_URL}?CONTACT_ID={contact_id}&TRANSFER_ID={assigned_by}"
         try:
-            transfer_response = requests.post(
-                CHAT_TRANSFER_URL,
-                params={"CONTACT_ID": contact_id, "TRANSFER_ID": assigned_by}
-            )
-
+            transfer_response = requests.post(transfer_url)
             if transfer_response.status_code == 200:
-                logging.info(f"Transferência de chat feita com sucesso: {CHAT_TRANSFER_URL}?CONTACT_ID={contact_id}&TRANSFER_ID={assigned_by}")
+                logging.info(f"Transferência de chat feita com sucesso: {transfer_url}")
             else:
                 logging.warning(f"Falha na transferência de chat: {transfer_response.status_code} — {transfer_response.text}")
         except Exception as e:
@@ -187,6 +193,7 @@ def handle_webhook():
     else:
         logging.info("Não mudou a responsabilidade")
         return jsonify({'status': 'sem_mudança', 'mensagem': 'Não mudou a responsabilidade'})
+
 
 if __name__ == "__main__":
     app.run(port=1400, host="0.0.0.0")
