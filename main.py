@@ -11,20 +11,21 @@ logging.basicConfig(level=logging.INFO)
 
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
-    data = request.json
-    deal_id = data.get('data', {}).get('FIELDS', {}).get('ID')
+    # Bitrix envia como form-urlencoded, não JSON
+    deal_id = request.form.get('data[FIELDS][ID]')
 
     if not deal_id:
         return jsonify({'status': 'erro', 'mensagem': 'ID do negócio não encontrado'}), 400
 
     # Consulta os dados do negócio
-    deal = requests.get(f"{BITRIX_WEBHOOK}/crm.deal.get", params={'id': deal_id}).json().get('result', {})
+    response = requests.get(f"{BITRIX_WEBHOOK}/crm.deal.get", params={'id': deal_id})
+    result = response.json().get('result', {})
     
-    assigned_by = str(deal.get('ASSIGNED_BY_ID'))
-    original_responsible = str(deal.get(FIELD_RESP_ORIGINAL, ''))
+    assigned_by = str(result.get('ASSIGNED_BY_ID', ''))
+    original_responsible = str(result.get(FIELD_RESP_ORIGINAL, ''))
 
     if not original_responsible or original_responsible == 'None':
-        # Atualiza o campo personalizado com o responsável atual
+        # Atualiza o campo com o responsável atual
         update = requests.post(f"{BITRIX_WEBHOOK}/crm.deal.update", json={
             'id': deal_id,
             'fields': {
