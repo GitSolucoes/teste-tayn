@@ -173,21 +173,23 @@ def check_and_update_responsible():
 
 @app.route("/deal-update-event/", methods=["POST"])
 def deal_update_event():
-    data = request.get_json()
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form.to_dict(flat=False)
 
     if not data or "event" not in data or "data" not in data or "FIELDS" not in data["data"]:
-        return jsonify({"error": "Invalid payload received"}), 400
+        return jsonify({"error": "Invalid payload received", "received": data}), 400
 
     deal_id = data["data"]["FIELDS"].get("ID")
     if not deal_id:
         return jsonify({"error": "Deal ID not found in payload"}), 400
 
     # Encaminhar para o endpoint de verificação e atualização
-    internal_url = f"http://127.0.0.1:1400/check-and-update-responsible/"
-    response = requests.post(internal_url, json={"deal_id": deal_id})
+    external_url = "https://grupo--solucoes-teste-tayn.rvc6im.easypanel.host/check-and-update-responsible/"
+    response = requests.post(external_url, json={"deal_id": deal_id})
 
     return jsonify({"status": "event received", "check_result": response.json()}), response.status_code
-
 
 @app.route("/")
 def index():
