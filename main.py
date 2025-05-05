@@ -183,6 +183,17 @@ def handle_webhook():
             transfer_response = requests.post(transfer_url)
             if transfer_response.status_code == 200:
                 logging.info(f"Transferência de chat feita com sucesso: {transfer_url}")
+                
+                # Chamada à rota /change-the-chat-responsible/
+                try:
+                    second_transfer_response = requests.post(transfer_url)
+                    if second_transfer_response.status_code == 200:
+                        logging.info(f"Transferência de responsabilidade feita com sucesso: {transfer_url}")
+                    else:
+                        logging.warning(f"Falha na segunda transferência: {second_transfer_response.status_code} — {second_transfer_response.text}")
+                except Exception as e:
+                    logging.error(f"Erro ao chamar a segunda transferência: {e}")
+
             else:
                 logging.warning(f"Falha na transferência de chat: {transfer_response.status_code} — {transfer_response.text}")
         except Exception as e:
