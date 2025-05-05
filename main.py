@@ -21,7 +21,7 @@ def change_the_chat_channel():
     if not CONTACT_ID or not QUEUE_ID:
         return jsonify({"error": "CONTACT_ID and QUEUE_ID must be provided in the URL parameters"}), 400
 
-    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    base_url = BITRIX_WEBHOOK
     url = f"{base_url}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
 
     logging.info(f"Buscando ID do chat: {url}")
@@ -52,7 +52,7 @@ def change_the_chat_responsability():
 
     TRANSFER_ID = extrair_numero(TRANSFER_ID)
 
-    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    base_url = BITRIX_WEBHOOK
     url = f"{base_url}/imopenlines.crm.chat.getLastId?CRM.ENTITY_TYPE=CONTACT&CRM_ENTITY={CONTACT_ID}"
 
     logging.info(f"Buscando chat para contato {CONTACT_ID}")
@@ -82,7 +82,7 @@ def finalize_chat():
     if not DEAL_ID:
         return jsonify({"error": "DEAL_ID must be provided in the URL parameters"}), 400
 
-    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    base_url = BITRIX_WEBHOOK
     url_get_chat = f"{base_url}/imopenlines.crm.chat.get?CRM_ENTITY_TYPE=DEAL&CRM_ENTITY={DEAL_ID}"
 
     response = requests.get(url_get_chat)
@@ -115,7 +115,7 @@ def transfer_chat_between_deals():
     if from_id == "Não informado" or to_id == "Não informado":
         return {"status": "error", "message": "ID do deal não informado!"}, 400
 
-    base_url = "https://marketingsolucoes.bitrix24.com.br/rest/35002/8zyo7yj1ry4k59b5"
+    base_url = BITRIX_WEBHOOK
     url_get_activity = f"{base_url}/crm.activity.list?filter[OWNER_ID]={from_id}"
     res = requests.get(url_get_activity)
 
