@@ -6,7 +6,6 @@ import time
 app = Flask(__name__)
 
 BITRIX_WEBHOOK = "https://marketingsolucoes.bitrix24.com.br/rest/5332/8zyo7yj1ry4k59b5"
-CHAT_TRANSFER_URL = "https://grupo--solucoes-teste-tayn.rvc6im.easypanel.host/change-the-chat-responsible/"
 FIELD_RESP_ORIGINAL = "UF_CRM_1746209622228"
 
 logging.basicConfig(level=logging.INFO)
@@ -178,26 +177,26 @@ def handle_webhook():
         }).json()
         logging.info(f"Responsável mudou: de {original_responsible} para {assigned_by} — Campo atualizado")
 
-        transfer_url = f"{CHAT_TRANSFER_URL}?CONTACT_ID={contact_id}&TRANSFER_ID={assigned_by}"
+        # Chamada interna à rota /change-the-chat-responsible/
         try:
-            transfer_response = requests.post(transfer_url)
-            if transfer_response.status_code == 200:
-                logging.info(f"Transferência de chat feita com sucesso: {transfer_url}")
-                
-                # Chamada à rota /change-the-chat-responsible/
-                try:
-                    second_transfer_response = requests.post(transfer_url)
-                    if second_transfer_response.status_code == 200:
-                        logging.info(f"Transferência de responsabilidade feita com sucesso: {transfer_url}")
-                    else:
-                        logging.warning(f"Falha na segunda transferência: {second_transfer_response.status_code} — {second_transfer_response.text}")
-                except Exception as e:
-                    logging.error(f"Erro ao chamar a segunda transferência: {e}")
+            with app.test_request_context(
+                f"/change-the-chat-responsible/?CONTACT_ID={contact_id}&TRANSFER_ID={assigned_by}",
+                method="POST"
+            ):
+                transfer_response = change_the_chat_responsability()
 
-            else:
-                logging.warning(f"Falha na transferência de chat: {transfer_response.status_code} — {transfer_response.text}")
+                status_code = (
+                    transfer_response[1]
+                    if isinstance(transfer_response, tuple)
+                    else 200
+                )
+
+                if status_code == 200:
+                    logging.info(f"Transferência de responsabilidade feita com sucesso para {assigned_by}")
+                else:
+                    logging.warning(f"Falha na transferência de responsabilidade: {transfer_response}")
         except Exception as e:
-            logging.error(f"Erro ao transferir chat: {e}")
+            logging.error(f"Erro ao executar change_the_chat_responsability: {e}")
 
         return jsonify({'status': 'mudou', 'mensagem': 'Responsável mudou, campo atualizado e chat transferido'})
 
