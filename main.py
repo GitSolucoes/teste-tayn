@@ -5,7 +5,7 @@ import time
 
 app = Flask(__name__)
 
-BITRIX_WEBHOOK = "https://marketingsolucoes.bitrix24.com.br/rest/5332/8zyo7yj1ry4k59b5"
+BITRIX_WEBHOOK = "https://marketingsolucoes.bitrix24.com.br/rest/35002/emtqclwlsig3j71t"
 FIELD_RESP_ORIGINAL = "UF_CRM_1746209622228"
 
 logging.basicConfig(level=logging.INFO)
